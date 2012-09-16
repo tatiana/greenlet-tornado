@@ -31,8 +31,9 @@ You also don't have to use any special patterns, such as writing everything as a
 
 import greenlet
 import tornado.httpclient
+import tornado.ioloop
 import tornado.web
-from functools import wraps
+from functools import wraps, partial
 
 def greenlet_fetch(request, **kwargs):
     """
@@ -53,7 +54,9 @@ def greenlet_fetch(request, **kwargs):
     assert gr.parent is not None, "greenlet_fetch() can only be called (possibly indirectly) from a RequestHandler method wrapped by the greenlet_asynchronous decorator."
 
     def callback(response):
-        gr.switch(response)
+        #gr.switch(response)
+        # Make sure we are on the master greenlet before we switch.
+        tornado.ioloop.IOLoop.instance().add_callback(partial(gr.switch, response))
 
     http_client = tornado.httpclient.AsyncHTTPClient()
     http_client.fetch(request, callback, **kwargs)
