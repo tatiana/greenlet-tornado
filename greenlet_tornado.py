@@ -92,3 +92,19 @@ def greenlet_asynchronous(wrapped_method):
 
     return wrapper
 
+
+def greenlet_asynchronous_callback(wrapped_method):
+    """
+    Like greenlet_asynchronous(), but meant to decorate a raw Tornado callback function, instead of a request handler method.
+    """
+    @wraps(wrapped_method)
+    def wrapper(*args, **kwargs):
+
+        def greenlet_base_func():
+            wrapped_method(*args, **kwargs)
+
+        gr = greenlet.greenlet(greenlet_base_func)
+        gr.switch()
+
+    return wrapper
+
