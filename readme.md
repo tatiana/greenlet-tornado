@@ -13,6 +13,11 @@ It's also immensely helpful when porting synchronous code to Tornado.
 Derived from this blog article:
 <http://blog.joshhaas.com/2011/06/marrying-boto-to-tornado-greenlets-bring-them-together/>
 
+Install
+-------
+
+    pip install greenlet_tornado
+
 Example Usage:
 --------------
 
@@ -32,3 +37,9 @@ Example Usage:
             # but the tornado IOLoop can do other things in the meantime.
             http_response = greenlet_fetch("http://www.mopub.com")
             # ... Do something with the response ...
+
+Run tests
+---------
+
+    pip install -r requirements_tests.txt
+    nosetests -s  --cover-branches --cover-erase --with-coverage --cover-inclusive --cover-package=greenlet_tornado --tests=tests --with-xunit
