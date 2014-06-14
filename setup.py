@@ -1,8 +1,9 @@
 from setuptools import setup, find_packages
 
-
-README = open('readme.md').read()
-
+try:
+    README = open('readme.md').read()
+except IOErrror:
+    README = "An easy way to seamlessly use Greenlet with Tornado"
 
 setup(name="greenlet_tornado",
       author="jphaas1, simonrad, rodsenra, tati_alchueyr (tatiana)",
