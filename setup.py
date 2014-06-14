@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 try:
     README = open('readme.md').read()
-except IOErrror:
+except IOError:
     README = "An easy way to seamlessly use Greenlet with Tornado"
 
 setup(name="greenlet_tornado",
