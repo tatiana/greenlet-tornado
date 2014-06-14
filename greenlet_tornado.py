@@ -1,3 +1,9 @@
+# This file was obtained from
+# wget https://github.com/mopub/greenlet-tornado/raw/master/greenlet_tornado.py
+#  It was modified by
+# rodsenra@gmail.com
+# tatiana.alchueyr@gmail.com
+
 # Copyright (c) 2012 The greenlet-tornado Authors.
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -28,12 +34,34 @@ These functions allow you to seamlessly use Greenlet with Tornado.
 This allows you to write code as if it were synchronous, and not worry about callbacks at all.
 You also don't have to use any special patterns, such as writing everything as a generator.
 """
+import time
+from functools import wraps
 
 import greenlet
-import tornado.httpclient
-import tornado.ioloop
 import tornado.web
-from functools import wraps, partial
+from tornado.escape import json_decode
+from tornado.httpclient import AsyncHTTPClient, HTTPError, HTTPRequest
+from tornado.ioloop import IOLoop
+from tornado.log import app_log
+
+
+# singleton objects
+_io_loop = None
+
+# Use cURL
+AsyncHTTPClient.configure("tornado.curl_httpclient.CurlAsyncHTTPClient")
+
+
+def greenlet_set_ioloop(io_loop=None):
+    """
+    Instantiate Tornado IOLoop.
+    """
+    global _io_loop
+    if io_loop is None:
+        _io_loop = IOLoop.instance()
+    else:
+        _io_loop = io_loop
+
 
 def greenlet_fetch(request, **kwargs):
     """
@@ -41,7 +69,7 @@ def greenlet_fetch(request, **kwargs):
     is complete, yet still allows the tornado IOLoop to do other things in the meantime.
 
     To use this function, it must be called (either directly or indirectly) from a method
-    wrapped by the greenlet_asynchronous decorator.
+    wrapped by the tgreenlet.asynchronous decorator.
 
     The request arg may be either a string URL or an HTTPRequest object.
     If it is a string, any additional kwargs will be passed directly to AsyncHTTPClient.fetch().
@@ -49,16 +77,16 @@ def greenlet_fetch(request, **kwargs):
     Returns an HTTPResponse object, or raises a tornado.httpclient.HTTPError exception
     on error (such as a timeout).
     """
-
     gr = greenlet.getcurrent()
     assert gr.parent is not None, "greenlet_fetch() can only be called (possibly indirectly) from a RequestHandler method wrapped by the greenlet_asynchronous decorator."
 
     def callback(response):
-        #gr.switch(response)
-        # Make sure we are on the master greenlet before we switch.
-        tornado.ioloop.IOLoop.instance().add_callback(partial(gr.switch, response))
+        """
+        Inner function
+        """
+        gr.switch(response)
 
-    http_client = tornado.httpclient.AsyncHTTPClient()
+    http_client = tornado.httpclient.AsyncHTTPClient(io_loop=_io_loop)
     http_client.fetch(request, callback, **kwargs)
 
     # Now, yield control back to the master greenlet, and wait for data to be sent to us.
@@ -69,7 +97,7 @@ def greenlet_fetch(request, **kwargs):
     return response
 
 
-def greenlet_asynchronous(wrapped_method):
+def asynchronous(wrapped_method):
     """
     Decorator that allows you to make async calls as if they were synchronous, by pausing the callstack and resuming it later.
 
@@ -82,8 +110,14 @@ def greenlet_asynchronous(wrapped_method):
     @tornado.web.asynchronous
     @wraps(wrapped_method)
     def wrapper(self, *args, **kwargs):
+        """
+        Inner function
+        """
 
         def greenlet_base_func():
+            """
+            Inner function
+            """
             wrapped_method(self, *args, **kwargs)
             self.finish()
 
@@ -92,3 +126,60 @@ def greenlet_asynchronous(wrapped_method):
 
     return wrapper
 
+
+class Response(object):
+    """
+    Abstracts HTTP response using same interface as requests.models.Response.
+    """
+
+    def __init__(self, tornado_response):
+        self.status_code = tornado_response.code
+        self.text = tornado_response.body
+
+    def json(self):
+        """
+        Try to convert response body to dict, otherwise rasies ValueError.
+        """
+        response = json_decode(self.text)
+        return response
+
+
+def fetch(params):
+    """
+    HTTP fetch based on provided params, which must be compatible with
+    tornado.httpclient.HTTPRequest constructor.
+    """
+    # TO-DO: test
+    try:
+        request = HTTPRequest(**params)
+        i = time.time()
+        response = greenlet_fetch(request)
+        f = time.time()
+        app_log.info("{0} took {1}".format(params["url"], f - i))
+    except HTTPError as e:
+        # Throwing explictly tornado.httpclient.ClientHTTPError so that
+        #   handler can detect it as a backend service error
+        if e.code == 404:
+            return None
+        else:
+            raise e
+    return Response(response)
+
+
+def get(url, timeout=None):
+    """
+    HTTP GET with similar interface to requests.get
+
+    Important:
+        tornado.webRequestHandler which calls this method must be decorated
+        with @tgreenlet.asynchronous
+    """
+    params = {
+        "url": unicode(url),
+        "method": "GET"
+    }
+    # TO-DO: test
+    if timeout:
+        params["connect_timeout"] = timeout
+        params["request_timeout"] = timeout
+    return fetch(params)
