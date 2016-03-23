@@ -49,9 +49,9 @@ class TestBucketHandler(AsyncHTTPTestCase):
     def test_globo_api(self):
         response = self.fetch('/globo/', method='GET')
         self.assertEqual(response.code, 200)
-        self.assertTrue("G1" in response.body)
+        self.assertTrue("G1" in response.body.decode("utf-8"))
 
     def test_globo_api_timeout(self):
         response = self.fetch('/globo_timeout/', method='GET')
         self.assertEqual(response.code, 200)
-        self.assertTrue("G1" in response.body)
+        self.assertTrue("G1" in response.body.decode("utf-8"))

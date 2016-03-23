@@ -35,6 +35,7 @@ This allows you to write code as if it were synchronous, and not worry about cal
 You also don't have to use any special patterns, such as writing everything as a generator.
 """
 import time
+from builtins import str
 from functools import wraps
 
 import greenlet
@@ -175,7 +176,7 @@ def get(url, timeout=None):
         with @tgreenlet.asynchronous
     """
     params = {
-        "url": unicode(url),
+        "url": str(url),
         "method": "GET"
     }
     # TO-DO: test

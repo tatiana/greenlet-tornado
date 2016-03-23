@@ -42,4 +42,4 @@ Run tests
 ---------
 
     pip install -r requirements_tests.txt
-    nosetests -s  --cover-branches --cover-erase --with-coverage --cover-inclusive --cover-package=greenlet_tornado --tests=tests --with-xunit
+    nosetests -s  --cover-branches --cover-erase --with-coverage --cover-inclusive --cover-package=greenlet_tornado --tests=tests
