@@ -16,7 +16,7 @@ class DummyHandler(CorsMixin, RequestHandler):
     @greenlet_tornado.asynchronous
     def get(self):
         response = greenlet_tornado.get("http://g1.globo.com/")
-        self.write(response.text)
+        self.write(response.text.decode("utf-8"))
 
 
 class TimeoutHandler(CorsMixin, RequestHandler):
@@ -24,7 +24,7 @@ class TimeoutHandler(CorsMixin, RequestHandler):
     @greenlet_tornado.asynchronous
     def get(self):
         response = greenlet_tornado.get("http://g1.globo.com/", timeout=1)
-        self.write(response.text)
+        self.write(response.text.decode("utf-8"))
 
 
 class TestBucketHandler(AsyncHTTPTestCase):

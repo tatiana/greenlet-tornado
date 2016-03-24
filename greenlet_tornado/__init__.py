@@ -133,7 +133,7 @@ class Response(object):
     Abstracts HTTP response using same interface as requests.models.Response.
     """
 
-    def __init__(self, tornado_response):
+    def __init__(self, tornado_response=None, status_code=None, body=None):
         self.status_code = tornado_response.code
         self.text = tornado_response.body
 
@@ -143,7 +143,6 @@ class Response(object):
         """
         response = json_decode(self.text)
         return response
-
 
 def fetch(params):
     """
@@ -158,12 +157,7 @@ def fetch(params):
         f = time.time()
         app_log.info("{0} took {1}".format(params["url"], f - i))
     except HTTPError as e:
-        # Throwing explictly tornado.httpclient.ClientHTTPError so that
-        #   handler can detect it as a backend service error
-        if e.code == 404:
-            return None
-        else:
-            raise e
+        response = e.response
     return Response(response)
 
 
@@ -178,6 +172,65 @@ def get(url, timeout=None):
     params = {
         "url": str(url),
         "method": "GET"
+    }
+    # TO-DO: test
+    if timeout:
+        params["connect_timeout"] = timeout
+        params["request_timeout"] = timeout
+    return fetch(params)
+
+
+def post(url, data=None, timeout=None):
+    """
+    HTTP POST with similar interface to requests.post
+
+    Important:
+        tornado.webRequestHandler which calls this method must be decorated
+        with @tgreenlet.asynchronous
+    """
+    params = {
+        "url": str(url),
+        "method": "POST",
+        "body": data
+    }
+    # TO-DO: test
+    if timeout:
+        params["connect_timeout"] = timeout
+        params["request_timeout"] = timeout
+    return fetch(params)
+
+
+def put(url, data=None, timeout=None):
+    """
+    HTTP PUT with similar interface to requests.put
+
+    Important:
+        tornado.webRequestHandler which calls this method must be decorated
+        with @tgreenlet.asynchronous
+    """
+    params = {
+        "url": str(url),
+        "method": "PUT",
+        "body": data
+    }
+    # TO-DO: test
+    if timeout:
+        params["connect_timeout"] = timeout
+        params["request_timeout"] = timeout
+    return fetch(params)
+
+
+def delete(url, timeout=None):
+    """
+    HTTP DELETE with similar interface to requests.delete
+
+    Important:
+        tornado.webRequestHandler which calls this method must be decorated
+        with @tgreenlet.asynchronous
+    """
+    params = {
+        "url": str(url),
+        "method": "DELETE"
     }
     # TO-DO: test
     if timeout:
