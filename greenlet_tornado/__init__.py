@@ -53,6 +53,13 @@ _io_loop = None
 AsyncHTTPClient.configure("tornado.curl_httpclient.CurlAsyncHTTPClient")
 
 
+class GreenletTornadoException(Exception):
+    """
+    Raised if `greenlet_fetch` is used from outside a WebHandler.
+    """
+    pass
+
+
 def greenlet_set_ioloop(io_loop=None):
     """
     Instantiate Tornado IOLoop.
@@ -79,7 +86,9 @@ def greenlet_fetch(request, **kwargs):
     on error (such as a timeout).
     """
     gr = greenlet.getcurrent()
-    assert gr.parent is not None, "greenlet_fetch() can only be called (possibly indirectly) from a RequestHandler method wrapped by the greenlet_asynchronous decorator."
+    msg = "greenlet_fetch() can only be called (possibly indirectly) from a RequestHandler method wrapped by the greenlet_asynchronous decorator."
+    if gr.parent is None:
+        raise GreenletTornadoException(msg)
 
     def callback(response):
         """
