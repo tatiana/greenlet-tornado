@@ -170,7 +170,7 @@ def fetch(params):
     return Response(response)
 
 
-def get(url, timeout=None):
+def get(url, timeout=None, **kargs):
     """
     HTTP GET with similar interface to requests.get
 
@@ -178,10 +178,10 @@ def get(url, timeout=None):
         tornado.webRequestHandler which calls this method must be decorated
         with @tgreenlet.asynchronous
     """
-    params = {
-        "url": str(url),
-        "method": "GET"
-    }
+    params = kargs
+    params["url"] = str(url)
+    params["method"] = "GET"
+
     # TO-DO: test
     if timeout:
         params["connect_timeout"] = timeout
@@ -189,7 +189,7 @@ def get(url, timeout=None):
     return fetch(params)
 
 
-def post(url, data=None, timeout=None):
+def post(url, data=None, timeout=None, **kargs):
     """
     HTTP POST with similar interface to requests.post
 
@@ -197,11 +197,11 @@ def post(url, data=None, timeout=None):
         tornado.webRequestHandler which calls this method must be decorated
         with @tgreenlet.asynchronous
     """
-    params = {
-        "url": str(url),
-        "method": "POST",
-        "body": data
-    }
+    params = kargs
+    params["url"] = str(url)
+    params["method"] = "POST"
+    params["body"] = data
+
     # TO-DO: test
     if timeout:
         params["connect_timeout"] = timeout
@@ -209,7 +209,7 @@ def post(url, data=None, timeout=None):
     return fetch(params)
 
 
-def put(url, data=None, timeout=None):
+def put(url, data=None, timeout=None, **kargs):
     """
     HTTP PUT with similar interface to requests.put
 
@@ -217,11 +217,11 @@ def put(url, data=None, timeout=None):
         tornado.webRequestHandler which calls this method must be decorated
         with @tgreenlet.asynchronous
     """
-    params = {
-        "url": str(url),
-        "method": "PUT",
-        "body": data
-    }
+    params = kargs
+    params["url"] = str(url)
+    params["method"] = "PUT"
+    params["body"] = data
+
     # TO-DO: test
     if timeout:
         params["connect_timeout"] = timeout
@@ -229,7 +229,7 @@ def put(url, data=None, timeout=None):
     return fetch(params)
 
 
-def delete(url, timeout=None):
+def delete(url, timeout=None, **kargs):
     """
     HTTP DELETE with similar interface to requests.delete
 
@@ -237,10 +237,10 @@ def delete(url, timeout=None):
         tornado.webRequestHandler which calls this method must be decorated
         with @tgreenlet.asynchronous
     """
-    params = {
-        "url": str(url),
-        "method": "DELETE"
-    }
+    params = kargs
+    params["url"] = str(url)
+    params["method"] = "DELETE"
+
     # TO-DO: test
     if timeout:
         params["connect_timeout"] = timeout
