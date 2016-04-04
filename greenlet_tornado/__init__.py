@@ -160,7 +160,7 @@ def fetch(params):
     """
     # TO-DO: test
     try:
-        request = HTTPRequest(**params)
+        request = HTTPRequest(allow_nonstandard_methods=True, **params)
         i = time.time()
         response = greenlet_fetch(request)
         f = time.time()
