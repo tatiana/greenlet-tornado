@@ -129,7 +129,12 @@ def asynchronous(wrapped_method):
             Inner function
             """
             wrapped_method(self, *args, **kwargs)
-            self.finish()
+            # sometimes the handler method may call finish - and this
+            # exception will be raised if we try to finish it twice.
+            try:
+                self.finish()
+            except RuntimeError:
+                pass
 
         gr = greenlet.greenlet(greenlet_base_func)
         gr.switch()
