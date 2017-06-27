@@ -21,6 +21,6 @@ setup(name="greenlet_tornado",
       long_description=README,
       packages=find_packages(),
       tests_require=["coverage==3.6", "nose==1.3.7", "mock==1.0.1", "tornado-cors"],
-      url = "http://github.com/tatiana/greenlet_tornado",
+      url = "https://github.com/tatiana/greenlet-tornado",
       version="1.1.3"
 )
